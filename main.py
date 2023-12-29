@@ -40,7 +40,7 @@ def wget(url: str) -> requests.Response:
 def get_ticker_sentiment(ticker: str) -> float:
     record = sentiments.search(Q.ticker == ticker)
     record = record[0] if record else False
-    if not record or datetime.fromisoformat(record['isotime']) - datetime.now() > timedelta(minutes=12):
+    if not record or datetime.now() - datetime.fromisoformat(record['isotime']) > timedelta(minutes=12):
         res = wget(f'https://newsdata.io/api/1/news?apikey={CFG.news_api_key}&q={NAMES[ticker]}&timeframe=24&category=business&language=en&full_content=1')
         news = res.json()
         news_string = [f'{result['title']}\n{result['description']}\n{result['content']}\n\n' for result in news['results']]
