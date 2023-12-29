@@ -137,7 +137,6 @@ def main():
     print('Starting')
     while True:
         clock = tradeAPI.get_clock()
-        print(get_investment_targets(TICKERS))
         if clock.is_open:
             set_orders(get_investment_targets(TICKERS))
             t = random.randint(60 * 1, 60 * 2)
