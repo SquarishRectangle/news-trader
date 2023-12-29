@@ -45,11 +45,21 @@ def get_ticker_sentiment(ticker: str) -> float:
         news = res.json()
         news_string = [f'{result['title']}\n{result['description']}\n{result['content']}\n\n' for result in news['results']]
         scores = sia.polarity_scores(news_string)
-        sentiments.insert({
-            'ticker': ticker,
-            'isotime': datetime.now().isoformat(),
-            'scores': scores
-        })
+        if record:
+            sentiments.update(
+                {
+                    'ticker': ticker,
+                    'isotime': datetime.now().isoformat(),
+                    'scores': scores
+                },
+                Q.ticker == ticker
+            )
+        else:
+            sentiments.insert({
+                'ticker': ticker,
+                'isotime': datetime.now().isoformat(),
+                'scores': scores
+            })
         return scores['pos'] - scores['neg']
     return record['scores']['pos'] - record['scores']['neg']
 
