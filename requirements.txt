@@ -1,6 +1,5 @@
-alpaca==1.0.0
+alpaca-py==1.0.0
 httpx==0.26.0
-newsapi_python==0.2.7
 pydantic==2.5.3
 PyYAML==6.0.1
 ratelimit==2.2.1
