@@ -115,7 +115,7 @@ def set_orders(targets: dict[str: float]):
         embeds = [
             {
                 'title': t,
-                'color': hash(t) % (16**6),
+                'color': int(''.join([str(ord(c)) for c in t])) % (16**6),
                 'description': f'{new_orders[t]['side']} {new_orders[t]['qty']}' if t in new_orders else '',
                 'fields': [
                     {
