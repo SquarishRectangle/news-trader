@@ -84,58 +84,56 @@ def get_avg_prices(tickers: list[str]) -> dict[str: float]:
     return data
 
 
-def get_prices(tickers: list[str]) -> dict[str: float]:
-    bar = dataAPI.get_stock_latest_bar(StockLatestBarRequest(
-        symbol_or_symbols=tickers
-    ))
-    return {t: (v.high + v.low)/2 for t, v in bar.items()}
-
-
 def set_orders(targets: dict[str: float]):
     tradeAPI.cancel_orders()
     positions = {p.symbol: p for p in tradeAPI.get_all_positions()}
-    prices = get_prices(targets.keys())
+
+    change = False
+    new_orders = {}
     for ticker, target in targets.items():
         current = int(positions[ticker].qty) if ticker in positions else 0
         
-        target = int(target/prices[ticker])
+        target = int(target/float(positions[ticker].current_price))
         diff = current - target
         if not diff:
             continue
-
-        order = tradeAPI.submit_order(LimitOrderRequest(
+        
+        qty = abs(diff)
+        side = 'buy' if diff < 0 else 'sell'
+        tradeAPI.submit_order(LimitOrderRequest(
             symbol=ticker,
-            qty=abs(diff),
-            side='buy' if diff < 0 else 'sell',
+            qty=qty,
+            side=side,
             type='limit',
-            limit_price=round(prices[ticker], 2),
+            limit_price=positions[ticker].current_price,
             time_in_force='day'
         ))
+        change = True
+        new_orders[ticker] = {'qty': qty, 'side': side}
 
+    if change:
+        embeds = [
+            {
+                'title': t,
+                'color': hash(t) % (16**6),
+                'description': f'{new_orders[t]['side']} {new_orders[t]['qty']}' if t in new_orders else '',
+                'fields': [
+                    {
+                        'name': k,
+                        'value': str(v),
+                        'inline': True
+                    }
+                    for k, v in vars(pos).items()
+                ]
+            }
+            for t, pos in positions.items()
+        ]
         requests.post(
             url=CFG.discord_webhook_url,
             json={
                 'username': 'News Trader',
                 'avatar_url': 'https://cdn-icons-png.flaticon.com/512/4177/4177587.png',
-                'embeds': [
-                    {
-                        'title': 'New Order',
-                        'description': f'{order.symbol}',
-                        'color': 16750848 if order.side == 'sell' else 255,
-                        'fields': [
-                            {
-                                'name': 'Quantity',
-                                'value': order.qty,
-                                'inline': True
-                            },
-                            {
-                                'name': 'Limit Price',
-                                'value': order.limit_price,
-                                'inline': True
-                            }
-                        ]
-                    }
-                ]
+                'embeds': embeds
             },
             headers={
                 'Content-type': 'application/json'
