@@ -126,7 +126,7 @@ def set_orders(targets: dict[str: float]):
                     for k, v in vars(pos).items()
                 ]
             }
-            for t, pos in positions.items()
+            for t, pos in positions.items() if t in new_orders
         ]
         requests.post(
             url=CFG.discord_webhook_url,
@@ -149,7 +149,7 @@ def main():
             set_orders(get_investment_targets(TICKERS))
             t = random.randint(60 * 1, 60 * 2)
         else:
-            t = clock.next_open.timestamp() - datetime.now().timestamp() + 10
+            t = clock.next_open.timestamp() - datetime.now().timestamp() - 30
         print(f'Sleeping until {datetime.now() + timedelta(seconds=t)}')
         time.sleep(t)
 
