@@ -92,8 +92,8 @@ def set_orders(targets: dict[str: float]):
     new_orders = {}
     for ticker, target in targets.items():
         current = int(positions[ticker].qty) if ticker in positions else 0
-        
-        target = int(target/(float(positions[ticker].current_price) if ticker in positions else get_avg_price(ticker)))
+        price = float(positions[ticker].current_price) if ticker in positions else get_avg_price(ticker)
+        target = int(target/price)
         diff = current - target
         if not diff:
             continue
@@ -105,7 +105,7 @@ def set_orders(targets: dict[str: float]):
             qty=qty,
             side=side,
             type='limit',
-            limit_price=positions[ticker].current_price,
+            limit_price=price,
             time_in_force='day'
         ))
         change = True
