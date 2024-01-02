@@ -92,7 +92,7 @@ def set_orders(targets: dict[str: float]):
     new_orders = {}
     for ticker, target in targets.items():
         current = int(positions[ticker].qty) if ticker in positions else 0
-        price = float(positions[ticker].current_price) if ticker in positions else get_avg_price(ticker)
+        price = float(positions[ticker].current_price) if ticker in positions else round(get_avg_price(ticker), 2)
         target = int(target/price)
         diff = current - target
         if not diff:
