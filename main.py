@@ -74,14 +74,14 @@ def get_investment_targets(tickers: list[str]) -> dict[str: float]:
     return targets
 
 
-def get_avg_prices(tickers: list[str]) -> dict[str: float]:
+def get_avg_price(ticker: str) -> float:
     bars = dataAPI.get_stock_bars(StockBarsRequest(
-        symbol_or_symbols=tickers,
+        symbol_or_symbols=ticker,
         timeframe=TimeFrame.Minute,
         start=datetime.now() - timedelta(hours=1)
     ))
     data = {t: sum(x.close for x in v)/len(v) for t, v in bars.data.items()}
-    return data
+    return data[ticker]
 
 
 def set_orders(targets: dict[str: float]):
@@ -93,7 +93,7 @@ def set_orders(targets: dict[str: float]):
     for ticker, target in targets.items():
         current = int(positions[ticker].qty) if ticker in positions else 0
         
-        target = int(target/float(positions[ticker].current_price))
+        target = int(target/(float(positions[ticker].current_price) if ticker in positions else get_avg_price(ticker)))
         diff = current - target
         if not diff:
             continue
