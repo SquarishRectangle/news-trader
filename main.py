@@ -4,7 +4,7 @@ import time
 from datetime import timedelta, datetime
 
 import vaderSentiment.vaderSentiment as vs
-from alpaca.data import TimeFrame
+from alpaca.data import TimeFrame, Bar
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest, StockLatestBarRequest
 from alpaca.trading.client import TradingClient
@@ -74,14 +74,11 @@ def get_investment_targets(tickers: list[str]) -> dict[str: float]:
     return targets
 
 
-def get_avg_price(ticker: str) -> float:
-    bars = dataAPI.get_stock_bars(StockBarsRequest(
-        symbol_or_symbols=ticker,
-        timeframe=TimeFrame.Minute,
-        start=datetime.now() - timedelta(hours=1)
+def get_latest_price(ticker: str) -> float:
+    bar: dict[str: Bar] = dataAPI.get_stock_latest_bar(StockLatestBarRequest(
+        symbol_or_symbols=ticker
     ))
-    data = {t: sum(x.close for x in v)/len(v) for t, v in bars.data.items()}
-    return data[ticker]
+    return bar[ticker].close
 
 
 def set_orders(targets: dict[str: float]):
@@ -92,7 +89,7 @@ def set_orders(targets: dict[str: float]):
     new_orders = {}
     for ticker, target in targets.items():
         current = int(positions[ticker].qty) if ticker in positions else 0
-        price = float(positions[ticker].current_price) if ticker in positions else round(get_avg_price(ticker), 2)
+        price = float(positions[ticker].current_price) if ticker in positions else round(get_latest_price(ticker), 2)
         target = int(target/price)
         diff = current - target
         if not diff:
