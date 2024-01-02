@@ -148,10 +148,14 @@ def main():
         if clock.is_open:
             set_orders(get_investment_targets(TICKERS))
             t = random.randint(60 * 1, 60 * 2)
+            print(f'Sleeping until {datetime.now() + timedelta(seconds=t)}')
+            time.sleep(t)
         else:
             t = clock.next_open.timestamp() - datetime.now().timestamp() - 30
-        print(f'Sleeping until {datetime.now() + timedelta(seconds=t)}')
-        time.sleep(t)
+            print(f'Sleeping until {datetime.now() + timedelta(seconds=t)}')
+            time.sleep(t)
+            set_orders(get_investment_targets(TICKERS))
+            time.sleep(30)
 
 
 if __name__ == '__main__':
